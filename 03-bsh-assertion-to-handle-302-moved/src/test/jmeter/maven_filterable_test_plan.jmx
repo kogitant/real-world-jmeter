@@ -76,7 +76,7 @@ log.info(&quot;AFTER: jmeter.vars.httpRequest.serverName: [&quot; + vars.get(&qu
           <stringProp name="HTTPSampler.contentEncoding"></stringProp>
           <stringProp name="HTTPSampler.path"></stringProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
-          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.follow_redirects">false</boolProp>
           <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
           <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
           <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
@@ -85,17 +85,15 @@ log.info(&quot;AFTER: jmeter.vars.httpRequest.serverName: [&quot; + vars.get(&qu
           <stringProp name="TestPlan.comments">Exeute HTTP GETs against given Google site</stringProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <BeanShellAssertion guiclass="BeanShellAssertionGui" testclass="BeanShellAssertion" testname="BeanShell Assertion" enabled="true">
-            <stringProp name="BeanShellAssertion.query">if (ResponseCode.equals(&quot;302&quot;) == true) { 
+          <BeanShellAssertion guiclass="BeanShellAssertionGui" testclass="BeanShellAssertion" testname="Handle HTTP Response Codes" enabled="true">
+            <stringProp name="BeanShellAssertion.query">if (ResponseCode.equals(&quot;302&quot;)) { 
 	log.info(&quot;Treating HTTP 302 as success&quot;);
 	// We want to treat this code as SUCCESS instead of FAILURE
     	SampleResult.setSuccessful(true);
-    	/*
-    	Unlike in the SO answer, we do not want to change the response code from 302 to 200
-    	SampleResult.setResponseCodeOK();
-    	SampleResult.setResponseMessageOK();
-    	*/
-}</stringProp>
+}else if(!ResponseCode.equals(&quot;200&quot;)){
+	log.warn(&quot;Got unwanted HTTP status: [&quot; + ResponseCode + &quot;]&quot;);
+}
+</stringProp>
             <stringProp name="BeanShellAssertion.filename"></stringProp>
             <stringProp name="BeanShellAssertion.parameters"></stringProp>
             <boolProp name="BeanShellAssertion.resetInterpreter">false</boolProp>
