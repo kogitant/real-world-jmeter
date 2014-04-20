@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.koant.rwj</groupId>
+  <artifactId>03-bsh-assertion-to-handle-302-moved</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <properties>
+    <maven.jmeter.testFilesDirectory>${project.build.directory}/plans</maven.jmeter.testFilesDirectory>
+  </properties>
+
+  <profiles>
+      <profile>
+        <id>dev</id>
+        <activation>
+          <activeByDefault>true</activeByDefault>
+        </activation>
+        <properties>
+          <maven.httpRequest.serverName>localhost</maven.httpRequest.serverName>
+        </properties>
+      </profile>
+    <profile>
+      <id>test</id>
+      <properties>
+        <maven.httpRequest.serverName>www.google.de</maven.httpRequest.serverName>
+      </properties>
+    </profile>
+    <profile>
+      <id>qa</id>
+      <properties>
+        <maven.httpRequest.serverName>www.google.es</maven.httpRequest.serverName>
+      </properties>
+    </profile>
+    <profile>
+      <id>fi</id>
+      <properties>
+        <maven.httpRequest.serverName>www.google.fi</maven.httpRequest.serverName>
+      </properties>
+    </profile>
+  </profiles>
+
+  <build>
+    <testResources>
+      <testResource>
+        <directory>src/test/jmeter</directory>
+        <filtering>true</filtering>
+        <targetPath>${project.build.directory}/plans</targetPath>
+      </testResource>
+    </testResources>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>2.6</version>
+          <executions>
+              <execution>
+                  <id>Process test resources</id>
+                  <phase>generate-test-resources</phase>
+                  <goals>
+                    <goal>testResources</goal>
+                  </goals>
+              </execution>
+            </executions>
+        </plugin>
+        <plugin>
+          <groupId>com.lazerycode.jmeter</groupId>
+          <artifactId>jmeter-maven-plugin</artifactId>
+          <version>1.9.0</version>
+          <executions>
+            <execution>
+              <id>jmeter-tests</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>jmeter</goal>
+              </goals>
+            </execution>
+          </executions>
+          <configuration>
+            <!--
+                   By default the test results are saved in a file
+                   /target/jmeter/results/<testname>-<timestamp>.jtl
+                   Further processing is easier without timestamp though.
+                -->
+            <testResultsTimestamp>false</testResultsTimestamp>
+
+            <!--
+               To simplify debugging, it is advisable to adapt the loglevel.
+               The jmeter logs are written to the file jmeter.log.
+            -->
+            <overrideRootLogLevel>INFO</overrideRootLogLevel>
+
+            <!--
+               By default, the console output during a jmeter test run is suppressed.
+               We want to display the progress using the listener "Generate Summary Results"
+               (which periodically prints stats to stdout). Therefore we have to make sure,
+               that the jmeter output is not suppressed.
+            -->
+            <suppressJMeterOutput>false</suppressJMeterOutput>
+
+            <!--
+               If tests fail (e.g. a http-request running into a timeout), the corresponding maven
+               goal also fails (and subsequent goals aren't executed anymore). We want to create graphs
+               from test-results, no matter if some requests failed or not, so we ignore jmeter failures.
+            -->
+            <ignoreResultFailures>true</ignoreResultFailures>
+
+            <!--
+              Now that we are maven filtering the jmx files from src/test/jmeter, we must instrcut
+              jmeter maven plugin to execute the filtered files
+            -->
+            <testFilesDirectory>${maven.jmeter.testFilesDirectory}</testFilesDirectory>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>com.lazerycode.jmeter</groupId>
+          <artifactId>jmeter-analysis-maven-plugin</artifactId>
+          <executions>
+            <execution>
+              <phase>verify</phase>
+              <goals>
+                <goal>analyze</goal>
+              </goals>
+              <configuration>
+                <!--
+                An AntPath-Style pattern matching a JMeter XML result file to analyze. Must be a fully qualified path.
+                File may be GZiped, must end in .gz then.
+
+                Default: not set.
+                Required.
+                -->
+                <source>${project.build.directory}/**/*.jtl</source>
+
+                <!--
+                directory where to store analysis result files.
+
+                Default: ${project.build.directory}
+                Required.
+                -->
+                <targetDirectory>${project.build.directory}/results</targetDirectory>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+  </build>
+
+</project>
