@@ -84,7 +84,24 @@ log.info(&quot;AFTER: jmeter.vars.httpRequest.serverName: [&quot; + vars.get(&qu
           <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
           <stringProp name="TestPlan.comments">Exeute HTTP GETs against given Google site</stringProp>
         </HTTPSamplerProxy>
-        <hashTree/>
+        <hashTree>
+          <BeanShellAssertion guiclass="BeanShellAssertionGui" testclass="BeanShellAssertion" testname="BeanShell Assertion" enabled="true">
+            <stringProp name="BeanShellAssertion.query">if (ResponseCode.equals(&quot;302&quot;) == true) { 
+	log.info(&quot;Treating HTTP 302 as success&quot;);
+	// We want to treat this code as SUCCESS instead of FAILURE
+    	SampleResult.setSuccessful(true);
+    	/*
+    	Unlike in the SO answer, we do not want to change the response code from 302 to 200
+    	SampleResult.setResponseCodeOK();
+    	SampleResult.setResponseMessageOK();
+    	*/
+}</stringProp>
+            <stringProp name="BeanShellAssertion.filename"></stringProp>
+            <stringProp name="BeanShellAssertion.parameters"></stringProp>
+            <boolProp name="BeanShellAssertion.resetInterpreter">false</boolProp>
+          </BeanShellAssertion>
+          <hashTree/>
+        </hashTree>
       </hashTree>
       <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
